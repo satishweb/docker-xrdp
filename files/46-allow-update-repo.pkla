@@ -1,0 +1,6 @@
+[Allow Package Management all Users]
+Identity=unix-user:*
+Action=org.freedesktop.packagekit.system-sources-refresh
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes

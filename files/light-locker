@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# The light-locker uses XDG_SESSION_PATH provided by lightdm.
+if [ ! -z "${XDG_SESSION_PATH}" ]; then
+  /usr/bin/light-locker.orig
+else
+  # Disable light-locker in XRDP.
+  true
+fi

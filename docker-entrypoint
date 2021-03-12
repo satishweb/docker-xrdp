@@ -1,0 +1,46 @@
+#!/bin/bash
+# Author: Satish Gaikwad <satish@satishweb.com>
+set -e
+
+if [ -f /run/secrets/DEBUG ]; then
+    export DEBUG=$(cat $i)
+fi
+
+if [ "$DEBUG" = "1" ]; then
+    set -x
+    BASH_CMD_FLAGS='-x'
+fi
+
+printf "|---------------------------------------------------------------------------------------------\n";
+printf "| Starting XRDP Services \n"
+
+# Load env vars
+printf "| ENTRYPOINT: \033[0;31mLoading docker secrets if found...\033[0m\n"
+for i in $(env|grep '/run/secrets')
+do
+    varName=$(echo $i|awk -F '[=]' '{print $1}'|sed 's/_FILE//')
+    varFile=$(echo $i|awk -F '[=]' '{print $2}')
+    exportCmd="export $varName=$(cat $varFile)"
+    echo "${exportCmd}" >> /etc/profile
+    eval "${exportCmd}"
+    printf "| ENTRYPOINT: Exporting var: $varName\n"
+done
+
+[[ "${GUEST_PASS}" == "" ]] && export GUEST_PASS="guest"
+
+echo "guest:${GUEST_PASS}" |chpasswd
+
+# Execute one time commands
+[[ ! -f /home/guest/.xsessionrc ]] && cp -rf /xsessionrc /home/guest/.xsessionrc
+chown -Rf guest:guest /home/guest/
+
+# Check if app-config is present
+if [ -f /app-config ]; then
+    # We expect that app-config handles the launch of app command
+    echo "| ENTRYPOINT: Executing app-config..."
+    . /app-config "$@"
+else
+    # Let default CMD run if app-config is missing
+    echo "| ENTRYPOINT: app-config was not available, running given parameters or default CMD..."
+    exec $@
+fi
