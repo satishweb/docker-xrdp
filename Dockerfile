@@ -24,6 +24,9 @@ RUN apt-get update && apt-get -y install \
     vim \
     openssh-server \
     nano \
+    xubuntu-desktop \
+    xubuntu-artwork \
+    xubuntu-default-settings \
     xserver-xorg-video-all \
     xserver-xorg-video-dummy \
     xfonts-cyrillic \
