@@ -1,7 +1,8 @@
 IMAGE=satishweb/xrdp
 PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 WORKDIR=$(shell pwd)
-#TAGNAME?=$(shell curl -s https://api.github.com/repos/m13253/dns-over-https/tags|jq -r '.[0].name')
+#TAGNAME?=$(shell curl -s https://api.github.com/repos/xx/xx/tags|jq -r '.[0].name')
+TAGNAME?=devel
 ifdef PUSH
 	EXTRA_BUILD_PARAMS = --push-images --push-git-tags
 endif
@@ -21,3 +22,6 @@ all:
 	  --work-dir "${WORKDIR}" \
 	  --git-tag "${TAGNAME}" \
 	  ${EXTRA_BUILD_PARAMS}
+
+test:
+	docker build -t ${IMAGE}:${TAGNAME} .
