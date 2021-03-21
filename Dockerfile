@@ -15,15 +15,15 @@ RUN apt-get install -y \
     software-properties-common \
     && apt-get clean
 
-# Enable use of multiple mirrors for apt
-RUN sed -i "s/deb http:\/\/archive.ubuntu.com\/ubuntu\//deb mirror:\/\/mirrors\.ubuntu\.com\/mirrors\.txt/g" /etc/apt/sources.list
-
 # Install desktop environment and other system tools
 RUN apt-get update && apt-get -y install \
     xrdp \
     xorg \
     xfce4 \
     supervisor \
+    vim \
+    ssh-server \
+    nano \
     xserver-xorg-video-all \
     xserver-xorg-video-dummy \
     xfonts-cyrillic \
@@ -36,8 +36,6 @@ RUN apt-get update && apt-get -y install \
     dbus-x11 \
     kmod \
     procps \
-    xubuntu-desktop \
-    xubuntu-artwork \
     firefox \
     xfce4-appmenu-plugin \
     xfce4-datetime-plugin \
@@ -47,7 +45,7 @@ RUN apt-get update && apt-get -y install \
     desktop-file-utils \
     fonts-dejavu \
     less \
-	multitail \
+	  multitail \
     fonts-noto \
     fonts-noto-color-emoji \
     fonts-ubuntu \
@@ -60,7 +58,6 @@ RUN apt-get update && apt-get -y install \
     xfonts-base \
     xfpanel-switch \
     xinput \
-    xubuntu-default-settings \
     xutils \
     xz-utils \
     zenity \
