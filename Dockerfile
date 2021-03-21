@@ -74,7 +74,6 @@ RUN apt-get update && apt-get -y install \
     pciutils \
     psmisc \
     fakeroot \
-    command-not-found \
     fuse \
     xfonts-base \
     xterm \
