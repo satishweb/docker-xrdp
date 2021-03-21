@@ -22,7 +22,7 @@ RUN apt-get update && apt-get -y install \
     xfce4 \
     supervisor \
     vim \
-    ssh-server \
+    openssh-server \
     nano \
     xserver-xorg-video-all \
     xserver-xorg-video-dummy \
@@ -45,7 +45,7 @@ RUN apt-get update && apt-get -y install \
     desktop-file-utils \
     fonts-dejavu \
     less \
-	  multitail \
+    multitail \
     fonts-noto \
     fonts-noto-color-emoji \
     fonts-ubuntu \

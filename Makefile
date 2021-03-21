@@ -22,3 +22,6 @@ all:
 	  --work-dir "${WORKDIR}" \
 	  --git-tag "${TAGNAME}" \
 	  ${EXTRA_BUILD_PARAMS}
+
+test:
+	docker build -t ${IMAGE}:${TAGNAME} .
