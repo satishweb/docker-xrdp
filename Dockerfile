@@ -82,6 +82,7 @@ RUN apt-get update && apt-get -y install \
     sudo \
     wget \
     curl \
+    gpg-agent \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
 
@@ -114,6 +115,12 @@ RUN echo 'allowed_users=anybody' > /etc/X11/Xwrapper.config
 RUN chmod g+w /etc/xrdp
 RUN chmod u+s /usr/sbin/xrdp-sesman
 RUN chmod u+s /usr/sbin/xrdp
+
+# Install firefox
+RUN add-apt-repository -y ppa:mozillateam/ppa && \
+    apt-get -y update && \
+    apt-get -y purge firefox ;\
+    apt-get -y install firefox-esr
 
 ## User Config
 RUN groupadd -g 1000 guest

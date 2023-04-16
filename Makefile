@@ -1,10 +1,10 @@
 IMAGE=satishweb/xrdp
 # PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-# PLATFORMS=linux/amd64,linux/arm64
-PLATFORMS=linux/arm64
+PLATFORMS=linux/amd64,linux/arm64
+# PLATFORMS=linux/arm64
 WORKDIR=$(shell pwd)
 XRDP_VERSION?=$(shell sudo docker run --rm --entrypoint=bash public.ecr.aws/ubuntu/ubuntu:22.04 -c \
-		"apt update >/dev/null 2>&1; \
+		"set -x; apt update >/dev/null 2>&1; \
 		apt-cache madison xrdp \
 		|cut -d \| -f 2 \
 		|sed 's/ //g'" \
