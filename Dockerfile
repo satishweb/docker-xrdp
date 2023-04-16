@@ -15,11 +15,8 @@ RUN apt-get install -y \
     software-properties-common \
     && apt-get clean
 
-ARG XRDP_VERSION ""
-
 # Install desktop environment and other system tools
 RUN apt-get update && apt-get -y install \
-    xrdp=${XRDP_VERSION} \
     xorg \
     xfce4 \
     supervisor \
@@ -85,6 +82,12 @@ RUN apt-get update && apt-get -y install \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
 
+ARG XRDP_VERSION ""
+
+RUN apt-get update && apt-get -y install xrdp=${XRDP_VERSION} \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
+
 ## XRDP Config
 RUN printf '%s\n' 'session required pam_env.so readenv=1' >> /etc/pam.d/xrdp-sesman
 # send xrdp services output to stdout
@@ -119,7 +122,9 @@ RUN chmod u+s /usr/sbin/xrdp
 RUN add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get -y update && \
     apt-get -y purge snapd ;\
-    apt-get -y install firefox-esr
+    apt-get -y install firefox-esr && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
 
 ## User Config
 RUN groupadd -g 1000 guest
