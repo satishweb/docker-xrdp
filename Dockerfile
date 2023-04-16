@@ -41,7 +41,6 @@ RUN apt-get update && apt-get -y install \
     dbus-x11 \
     kmod \
     procps \
-    firefox \
     xfce4-appmenu-plugin \
     xfce4-datetime-plugin \
     xfce4-goodies \
@@ -119,7 +118,7 @@ RUN chmod u+s /usr/sbin/xrdp
 # Install firefox and get rid of snapd
 RUN add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get -y update && \
-    apt-get -y purge firefox snapd ;\
+    apt-get -y purge snapd ;\
     apt-get -y install firefox-esr
 
 ## User Config
