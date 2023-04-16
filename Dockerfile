@@ -116,10 +116,10 @@ RUN chmod g+w /etc/xrdp
 RUN chmod u+s /usr/sbin/xrdp-sesman
 RUN chmod u+s /usr/sbin/xrdp
 
-# Install firefox
+# Install firefox and get rid of snapd
 RUN add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get -y update && \
-    apt-get -y purge firefox ;\
+    apt-get -y purge firefox snapd ;\
     apt-get -y install firefox-esr
 
 ## User Config
