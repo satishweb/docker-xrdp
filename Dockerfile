@@ -1,5 +1,5 @@
 # Author: Satish Gaikwad <satish@satishweb.com>
-FROM     ubuntu:20.04
+FROM public.ecr.aws/ubuntu/ubuntu:22.04
 LABEL MAINTAINER "Satish Gaikwad <satish@satishweb.com>"
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -15,9 +15,11 @@ RUN apt-get install -y \
     software-properties-common \
     && apt-get clean
 
+ARG XRDP_VERSION ""
+
 # Install desktop environment and other system tools
 RUN apt-get update && apt-get -y install \
-    xrdp \
+    xrdp=${XRDP_VERSION} \
     xorg \
     xfce4 \
     supervisor \
@@ -120,6 +122,7 @@ RUN useradd -u 1000 -g 1000 -d /home/guest -s /bin/bash -c "Guest User" guest
 RUN usermod -a -G ssl-cert xrdp
 # Allow guest to be sudo to install any new packages
 RUN usermod -a -G sudo guest
+RUN echo '%guest ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN mkdir /home/guest
 RUN echo 'guest:guest' | chpasswd
 # Copy xsessionrc file as template inside.
