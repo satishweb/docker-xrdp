@@ -32,7 +32,6 @@ echo "guest:${GUEST_PASS}" |chpasswd
 
 # Execute one time commands
 [[ ! -f /home/guest/.xsessionrc ]] && cp -rf /xsessionrc /home/guest/.xsessionrc
-chown -Rf guest:guest /home/guest/
 
 # Check if app-config is present
 if [ -f /app-config ]; then
