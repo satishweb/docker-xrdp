@@ -1,4 +1,6 @@
-FROM ubuntu:23.04
+FROM ubuntu:24.04
+
+LABEL authors="Satish Gaikwad<satish@satishweb.com>"
 
 ENV DEBIAN_FRONTEND noninteractive
 
