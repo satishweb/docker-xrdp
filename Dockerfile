@@ -95,7 +95,7 @@ RUN apt-get update && apt-get -y install \
 RUN apt-get update && apt-get -y install \
     openjdk-17-jdk cmake autoconf autotools-dev \
     automake libtool libltdl-dev libffi-dev python3-openssl libssl-dev \
-    sphinx python3-sphinx-copybutton furo texlive-full latexmk \
+    sphinx python3-sphinx-copybutton texlive-full latexmk \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
 
