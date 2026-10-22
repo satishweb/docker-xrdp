@@ -1,8 +1,8 @@
-FROM public.ecr.aws/ubuntu/ubuntu:22.04
+FROM ubuntu:24.04
 
 LABEL authors="Satish Gaikwad<satish@satishweb.com>"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
@@ -13,7 +13,10 @@ RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/ap
 RUN apt-get install -y \
     ca-certificates \
     software-properties-common \
-    && apt-get clean
+    && apt-get clean && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 # Install desktop environment and other system tools
 RUN apt-get update && apt-get -y install \
@@ -89,7 +92,10 @@ RUN apt-get update && apt-get -y install \
     curl \
     gpg-agent \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 # for reticulum and other development
 RUN apt-get update && apt-get -y install \
@@ -97,11 +103,17 @@ RUN apt-get update && apt-get -y install \
     automake libtool libltdl-dev libffi-dev python3-openssl libssl-dev \
     sphinx python3-sphinx-copybutton texlive-full latexmk \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 RUN apt-get update && apt-get -y install xrdp \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*deb && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 ## XRDP Config
 RUN printf '%s\n' 'session required pam_env.so readenv=1' >> /etc/pam.d/xrdp-sesman
@@ -139,7 +151,10 @@ RUN add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get -y upgrade && \
     apt-get -y purge snapd ;\
     apt-get -y install firefox-esr && \
-    apt-get clean
+    apt-get clean && \
+    rm -f /etc/ssh/ssh_host_* \
+        /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/ssl/certs/ssl-cert-snakeoil.pem
 
 ## User Config
 RUN useradd -d /home/guest -s /bin/bash -c "Guest User" guest
