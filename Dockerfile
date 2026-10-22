@@ -1,8 +1,8 @@
-FROM public.ecr.aws/ubuntu/ubuntu:22.04
+FROM ubuntu:24.04
 
 LABEL authors="Satish Gaikwad<satish@satishweb.com>"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
