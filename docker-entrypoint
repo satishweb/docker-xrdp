@@ -3,13 +3,18 @@
 set -e
 
 if [ -f /run/secrets/DEBUG ]; then
-    export DEBUG=$(cat $i)
+    export DEBUG="$(cat /run/secrets/DEBUG)"
 fi
 
 if [ "$DEBUG" = "1" ]; then
     set -x
     BASH_CMD_FLAGS='-x'
 fi
+
+## The keys of the host are made when the container starts. They are not
+## part of the image, every container has its own.
+ssh-keygen -A
+make-ssl-cert generate-default-snakeoil --force-overwrite >/dev/null
 
 printf "|---------------------------------------------------------------------------------------------\n";
 printf "| Starting XRDP Services \n"
@@ -20,7 +25,7 @@ for i in $(env|grep '/run/secrets')
 do
     varName=$(echo $i|awk -F '[=]' '{print $1}'|sed 's/_FILE//')
     varFile=$(echo $i|awk -F '[=]' '{print $2}')
-    exportCmd="export $varName=$(cat $varFile)"
+    exportCmd="export $varName=\"$(cat "$varFile")\""
     echo "${exportCmd}" >> /etc/profile
     eval "${exportCmd}"
     printf "| ENTRYPOINT: Exporting var: $varName\n"
