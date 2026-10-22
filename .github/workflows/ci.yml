@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build-and-test:
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, dgx2]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
