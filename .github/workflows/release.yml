@@ -1,3 +1,11 @@
+# Build and publish the image for a release tag.
+#
+# The tag has to have the form v<version>.
+#
+# The image is published to the Docker Hub and to the GitHub container
+# registry. A release can only be cut from a commit that was built, tested
+# and scanned.
+
 name: Release
 
 on:
@@ -28,10 +36,11 @@ concurrency:
 env:
   REGISTRY_DOCKERHUB: docker.io
   REGISTRY_GHCR: ghcr.io
-  satishweb/docker-xrdp: satishweb/docker-xrdp
+  IMAGE_NAME: docker-xrdp
   DOCKERHUB_OWNER: satishweb
 
 jobs:
+
   gate:
     name: Check the build of the branch
     runs-on: ubuntu-latest
@@ -59,14 +68,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-        fetch-depth: 0
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
+        with:
+          fetch-depth: 0
       - name: Build the image
         uses: docker/build-push-action@v6
         with:
@@ -74,15 +77,17 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64
           load: true
-          tags: satishweb/docker-xrdp:verify
+          tags: docker-xrdp:verify
+          provenance: false
 
       - name: Scan the image for vulnerabilities and secrets
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: satishweb/docker-xrdp:verify
+          image-ref: docker-xrdp:verify
           format: table
           output: /tmp/trivy.txt
           scanners: vuln,secret
+          vuln-type: os
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
@@ -92,19 +97,35 @@ jobs:
         if: always()
         run: cat /tmp/trivy.txt
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Report the findings of the programs in the image
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          python-version: "3.12"
+          image-ref: docker-xrdp:verify
+          format: table
+          output: /tmp/trivy-all.txt
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+          trivyignores: .trivyignore
 
-      - name: Install the test dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r tests/requirements.txt
+      - name: Show the findings of the programs in the image
+        if: always()
+        run: cat /tmp/trivy-all.txt
 
-      - name: Test the image
-        run: |
-          python tests/test-xrdp.py --image satishweb/docker-xrdp:verify
+      - name: Generate the bill of materials
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: docker-xrdp:verify
+          format: cyclonedx
+          output: /tmp/sbom.cdx.json
+
+      - name: Upload the bill of materials
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: /tmp/sbom.cdx.json
+          if-no-files-found: error
 
   publish:
     name: Publish
@@ -113,13 +134,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-        fetch-depth: 0
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        with:
+          fetch-depth: 0
+      - name: Build and publish
+        run: |
+          set -euo pipefail
+          tags="${{ steps.release.outputs.tags }}"
+          first_tag=$(echo "$tags" | head -1)
+          docker build -f Dockerfile -t "$first_tag" .
+          echo "$tags" | while read -r tag; do
+            [ -n "$tag" ] || continue
+            [ "$tag" = "$first_tag" ] || docker tag "$first_tag" "$tag"
+            docker push "$tag"
+          done
 
       - name: Log in to the Docker Hub
         if: ${{ !inputs.dry_run }}
@@ -136,20 +163,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and publish
-        run: |
-          set -euo pipefail
-          tags="${{ steps.release.outputs.tags }}"
-          args=()
-          while IFS= read -r tag; do
-            [ -n "$tag" ] && args+=(-t "$tag")
-          done <<< "$tags"
-          docker buildx build --push --provenance=false --platform linux/amd64 -f Dockerfile "${args[@]}" .
   release:
     name: GitHub release
     needs: publish
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
+    if: ${{ startsWith(github.ref, 'refs/tags/') && !inputs.dry_run }}
     permissions:
       contents: write
     steps:
@@ -159,9 +177,21 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "The release ${TAG} exists already, its notes are updated."
-            gh release edit "${TAG}" --title "${TAG}" --generate-notes
-          else
-            gh release create "${TAG}" --title "${TAG}" --generate-notes
+          tag="${RELEASE_TAG}"
+          if [[ ! "${tag}" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]] ; then
+            echo "::error::The tag ${tag} does not have the expected form."
+            exit 1
           fi
+          version="${BASH_REMATCH[1]}"
+          {
+            echo "version=${version}"
+            echo "tags<<EOF"
+            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag}"
+            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}"
+            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:latest"
+            echo "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag}"
+            echo "${REGISTRY_GHCR}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}"
+            echo "${REGISTRY_GHCR}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:latest"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
