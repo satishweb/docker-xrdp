@@ -139,7 +139,7 @@ jobs:
       - name: Build and publish
         run: |
           set -euo pipefail
-          tag="${{ github.ref_name }}"
+          tag="${{ inputs.tag || github.ref_name }}"
           version="${tag#v}"
           first_tag="${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag}"
           docker build -f Dockerfile -t "$first_tag" .
