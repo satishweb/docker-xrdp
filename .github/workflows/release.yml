@@ -139,13 +139,18 @@ jobs:
       - name: Build and publish
         run: |
           set -euo pipefail
-          tags="${{ steps.release.outputs.tags }}"
-          first_tag=$(echo "$tags" | head -1)
+          tag="${{ github.ref_name }}"
+          version="${tag#v}"
+          first_tag="${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag}"
           docker build -f Dockerfile -t "$first_tag" .
-          echo "$tags" | while read -r tag; do
-            [ -n "$tag" ] || continue
-            [ "$tag" = "$first_tag" ] || docker tag "$first_tag" "$tag"
-            docker push "$tag"
+          for tag_var in \
+            "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}" \
+            "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag_prefix}latest" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}${tag}" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}${version}" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}latest" ; do
+            [ "$tag_var" = "$first_tag" ] || docker tag "$first_tag" "$tag_var"
+            docker push "$tag_var"
           done
 
       - name: Log in to the Docker Hub
@@ -183,15 +188,5 @@ jobs:
             exit 1
           fi
           version="${BASH_REMATCH[1]}"
-          {
-            echo "version=${version}"
-            echo "tags<<EOF"
-            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag}"
-            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}"
-            echo "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:latest"
-            echo "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag}"
-            echo "${REGISTRY_GHCR}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}"
-            echo "${REGISTRY_GHCR}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:latest"
-            echo "EOF"
-          } >> "${GITHUB_OUTPUT}"
+          echo "Release ${TAG} with version ${version}"
 
