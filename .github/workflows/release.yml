@@ -147,7 +147,7 @@ jobs:
             ${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${satishweb/docker-xrdp}:latest
             ${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${satishweb/docker-xrdp}:${GITHUB_REF_NAME}
             ${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${satishweb/docker-xrdp}:latest
-          provenance: true
+          provenance: false
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
