@@ -137,21 +137,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${satishweb/docker-xrdp}:${GITHUB_REF_NAME}
-            ${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${satishweb/docker-xrdp}:latest
-            ${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${satishweb/docker-xrdp}:${GITHUB_REF_NAME}
-            ${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${satishweb/docker-xrdp}:latest
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-
+        run: |
+          set -euo pipefail
+          tags="${{ steps.release.outputs.tags }}"
+          args=()
+          while IFS= read -r tag; do
+            [ -n "$tag" ] && args+=(-t "$tag")
+          done <<< "$tags"
+          docker buildx build --push --platform linux/amd64 -f Dockerfile "${args[@]}" .
   release:
     name: GitHub release
     needs: publish
