@@ -139,16 +139,16 @@ jobs:
       - name: Build and publish
         run: |
           set -euo pipefail
-          tag="${{ inputs.tag || github.ref_name }}"
+          tag="${{ github.ref_name }}"
           version="${tag#v}"
           first_tag="${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag}"
           docker build -f Dockerfile -t "$first_tag" .
           for tag_var in \
             "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${version}" \
-            "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:${tag_prefix}latest" \
-            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}${tag}" \
-            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}${version}" \
-            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag_prefix}latest" ; do
+            "${REGISTRY_DOCKERHUB}/${DOCKERHUB_OWNER}/${IMAGE_NAME}:latest" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${tag}" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${version}" \
+            "${REGISTRY_GHCR}/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:latest" ; do
             [ "$tag_var" = "$first_tag" ] || docker tag "$first_tag" "$tag_var"
             docker push "$tag_var"
           done
