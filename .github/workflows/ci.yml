@@ -31,6 +31,10 @@ jobs:
 
       - name: Scan the image for vulnerabilities and secrets
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          # Scanning the large image can take longer than the five minute
+          # default of Trivy.
+          TRIVY_TIMEOUT: 20m
         with:
           image-ref: satishweb/docker-xrdp:ci
           format: table
@@ -52,6 +56,8 @@ jobs:
 
       - name: Report the findings of the programs in the image
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_TIMEOUT: 20m
         with:
           image-ref: satishweb/docker-xrdp:ci
           format: table
